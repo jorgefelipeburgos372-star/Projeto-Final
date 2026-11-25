@@ -1,0 +1,587 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Contas a Pagar</title>
+
+    <link rel="stylesheet" th:href="@{/Css/estilo.css}">
+    <link rel="stylesheet" th:href="@{/Css/Contas-Centro.css}">
+</head>
+
+<body>
+
+<header class="cabecalho">
+    <h1>Sistema de Cadastros</h1>
+    <p>Cadastro e consulta de contas a pagar</p>
+</header>
+
+<main class="container">
+
+    <!-- RESUMO FINANCEIRO -->
+    <section class="resumo-contas">
+
+        <div class="cartao-resumo">
+            <h3>Total de Contas</h3>
+            <p id="totalContas">R$ 0,00</p>
+        </div>
+
+        <div class="cartao-resumo">
+            <h3>Total Pago</h3>
+            <p id="totalPago">R$ 0,00</p>
+        </div>
+
+        <div class="cartao-resumo">
+            <h3>Total Pendente</h3>
+            <p id="totalPendente">R$ 0,00</p>
+        </div>
+
+    </section>
+
+    <!-- CADASTRO -->
+    <section class="cartao secao-contas">
+
+        <h2>Cadastro de Contas a Pagar</h2>
+
+        <form id="formConta">
+
+            <div class="grade-formulario">
+
+                <div class="campo">
+                    <label>Descrição da Conta:</label>
+                    <input type="text" id="descricao"
+                           placeholder="Digite a descrição" required>
+                </div>
+
+                <div class="campo">
+                    <label>Fornecedor:</label>
+                    <input type="text" id="fornecedor"
+                           placeholder="Nome do fornecedor" required>
+                </div>
+
+                <div class="campo">
+                    <label>Documento:</label>
+                    <input type="text" id="documento"
+                           placeholder="Número do documento">
+                </div>
+
+                <div class="campo">
+                    <label>Categoria:</label>
+                    <select id="categoria" required>
+                        <option value="">Selecione uma categoria</option>
+                        <option value="Água">Água</option>
+                        <option value="Energia">Energia</option>
+                        <option value="Aluguel">Aluguel</option>
+                        <option value="Internet">Internet</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label>Valor (R$):</label>
+                    <input type="number" id="valor"
+                           step="0.01" min="0"
+                           placeholder="0,00" required>
+                </div>
+
+                <div class="campo">
+                    <label>Data de Emissão:</label>
+                    <input type="date" id="emissao">
+                </div>
+
+                <div class="campo">
+                    <label>Data de Vencimento:</label>
+                    <input type="date" id="vencimento" required>
+                </div>
+
+                <div class="campo">
+                    <label>Data de Pagamento:</label>
+                    <input type="date" id="pagamento">
+                </div>
+
+                <div class="campo">
+                    <label>Status:</label>
+                    <select id="status" required>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Pago">Pago</option>
+                    </select>
+                </div>
+
+                <div class="campo campo-completo">
+                    <label>Observações:</label>
+                    <textarea id="observacoes" rows="3"
+                              placeholder="Digite alguma observação"></textarea>
+                </div>
+
+            </div>
+
+            <div class="botoes-formulario">
+
+                <button type="reset" class="botao botao-secundario">
+                    Limpar
+                </button>
+
+                <button type="submit" class="botao botao-principal">
+                    Cadastrar Conta
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+    <!-- CONSULTA -->
+    <section class="cartao secao-contas">
+
+        <h2>Contas Cadastradas</h2>
+
+        <div class="filtros-contas">
+
+            <input type="text" id="pesquisa"
+                   placeholder="Pesquisar conta ou fornecedor">
+
+            <select id="filtroStatus">
+                <option value="">Todos os status</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Pago">Pago</option>
+            </select>
+
+        </div>
+
+        <div class="tabela-responsiva">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Fornecedor</th>
+                    <th>Vencimento</th>
+                    <th>Data de Pagamento</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+                </thead>
+
+                <tbody id="listaContas">
+                <tr>
+                    <td colspan="7">Carregando contas...</td>
+                </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <a href="/" class="botao-voltar">Voltar ao Menu Principal</a>
+
+</main>
+
+<footer class="rodape">
+    Sistema de Cadastro e Consulta de Contas a Pagar
+</footer>
+
+<script>
+
+    // ENDEREÇO DA API
+    const API = 'http://localhost:8080/contas-pagar';
+
+    const formConta = document.getElementById('formConta');
+    const listaContas = document.getElementById('listaContas');
+
+    let contas = [];
+    let contaEditando = null;
+
+
+    // FORMATA VALORES EM REAIS
+    function formatarValor(valor) {
+        return Number(valor || 0).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        });
+    }
+
+
+    // FORMATA DATA
+    function formatarData(data) {
+
+        if (!data) {
+            return '-';
+        }
+
+        const partes = data.split('-');
+
+        if (partes.length !== 3) {
+            return data;
+        }
+
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+
+    // ATUALIZA O RESUMO FINANCEIRO
+    function atualizarResumo() {
+
+        const totalContas = contas.reduce(
+            (soma, conta) => soma + Number(conta.valor || 0), 0
+        );
+
+        const totalPago = contas
+            .filter(conta => conta.status === 'Pago')
+            .reduce((soma, conta) => soma + Number(conta.valor || 0), 0);
+
+        const totalPendente = contas
+            .filter(conta => conta.status === 'Pendente')
+            .reduce((soma, conta) => soma + Number(conta.valor || 0), 0);
+
+        document.getElementById('totalContas').textContent =
+            formatarValor(totalContas);
+
+        document.getElementById('totalPago').textContent =
+            formatarValor(totalPago);
+
+        document.getElementById('totalPendente').textContent =
+            formatarValor(totalPendente);
+    }
+
+
+    // CARREGA AS CONTAS DO BACK-END
+    async function carregarContas() {
+
+        try {
+
+            const resposta = await fetch(API);
+
+            if (!resposta.ok) {
+                throw new Error('Erro ao buscar contas.');
+            }
+
+            contas = await resposta.json();
+
+            atualizarResumo();
+            mostrarContas();
+
+        } catch (erro) {
+
+            console.error(erro);
+
+            listaContas.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        Não foi possível carregar as contas.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+
+    // MOSTRA AS CONTAS NA TABELA
+    function mostrarContas() {
+
+        const pesquisa = document.getElementById('pesquisa')
+            .value.toLowerCase();
+
+        const filtroStatus = document.getElementById('filtroStatus')
+            .value;
+
+        const contasFiltradas = contas.filter(conta => {
+
+            const descricao = (conta.descricao || '').toLowerCase();
+            const fornecedor = (conta.fornecedor || '').toLowerCase();
+
+            const correspondePesquisa =
+                descricao.includes(pesquisa) ||
+                fornecedor.includes(pesquisa);
+
+            const correspondeStatus =
+                filtroStatus === '' || conta.status === filtroStatus;
+
+            return correspondePesquisa && correspondeStatus;
+        });
+
+        listaContas.innerHTML = '';
+
+        if (contasFiltradas.length === 0) {
+
+            listaContas.innerHTML = `
+                <tr>
+                    <td colspan="7">Nenhuma conta encontrada.</td>
+                </tr>
+            `;
+
+            return;
+        }
+
+        contasFiltradas.forEach(conta => {
+
+            const linha = document.createElement('tr');
+
+            const botaoPagamento = conta.status === 'Pago'
+                ? ''
+                : `<button class="botao botao-principal"
+                    onclick="marcarComoPago(${conta.id})">
+                    Marcar como pago
+                   </button>`;
+
+            linha.innerHTML = `
+                <td>${conta.descricao || ''}</td>
+                <td>${conta.fornecedor || ''}</td>
+                <td>${formatarData(conta.vencimento)}</td>
+                <td>${formatarData(conta.pagamento)}</td>
+                <td>${formatarValor(conta.valor)}</td>
+                <td>${conta.status || 'Pendente'}</td>
+                <td>
+                    ${botaoPagamento}
+
+                    <button class="botao botao-secundario"
+                        onclick="editarConta(${conta.id})">
+                        Editar
+                    </button>
+
+                    <button class="botao botao-excluir"
+                        onclick="excluirConta(${conta.id})">
+                        Excluir
+                    </button>
+                </td>
+            `;
+
+            listaContas.appendChild(linha);
+
+        });
+    }
+
+
+    // CADASTRAR OU ATUALIZAR CONTA
+    formConta.addEventListener('submit', async function(event) {
+
+        event.preventDefault();
+
+        const conta = {
+
+            descricao: document.getElementById('descricao').value,
+            fornecedor: document.getElementById('fornecedor').value,
+            documento: document.getElementById('documento').value,
+            categoria: document.getElementById('categoria').value,
+            valor: Number(document.getElementById('valor').value),
+            emissao: document.getElementById('emissao').value,
+            vencimento: document.getElementById('vencimento').value,
+            pagamento: document.getElementById('pagamento').value,
+            status: document.getElementById('status').value,
+            observacoes: document.getElementById('observacoes').value
+
+        };
+
+        if (conta.status === 'Pago' && !conta.pagamento) {
+            alert('Informe a data do pagamento.');
+            return;
+        }
+
+        if (conta.status === 'Pendente') {
+            conta.pagamento = '';
+        }
+
+        try {
+
+            let resposta;
+
+            if (contaEditando === null) {
+
+                resposta = await fetch(API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(conta)
+                });
+
+            } else {
+
+                resposta = await fetch(`${API}/${contaEditando}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(conta)
+                });
+
+            }
+
+            if (!resposta.ok) {
+                throw new Error('Não foi possível salvar a conta.');
+            }
+
+            alert('Conta salva com sucesso!');
+
+            formConta.reset();
+            contaEditando = null;
+
+            formConta.querySelector('button[type="submit"]')
+                .textContent = 'Cadastrar Conta';
+
+            carregarContas();
+
+        } catch (erro) {
+
+            console.error(erro);
+            alert('Erro ao salvar. Verifique se o back-end está funcionando.');
+
+        }
+
+    });
+
+
+    // MARCAR CONTA COMO PAGA
+    async function marcarComoPago(id) {
+
+        const confirmar = confirm(
+            'Deseja realmente marcar esta conta como paga?'
+        );
+
+        if (!confirmar) {
+            return;
+        }
+
+        const conta = contas.find(item => item.id === id);
+
+        if (!conta) {
+            return;
+        }
+
+        const hoje = new Date();
+        const dataPagamento =
+            `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+
+        const contaAtualizada = {
+            ...conta,
+            status: 'Pago',
+            pagamento: dataPagamento
+        };
+
+        try {
+
+            const resposta = await fetch(`${API}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(contaAtualizada)
+            });
+
+            if (!resposta.ok) {
+                throw new Error('Erro ao atualizar pagamento.');
+            }
+
+            alert('Conta marcada como paga!');
+
+            carregarContas();
+
+        } catch (erro) {
+
+            console.error(erro);
+            alert('Não foi possível atualizar o pagamento.');
+
+        }
+    }
+
+
+    // EDITAR CONTA
+    async function editarConta(id) {
+
+        const conta = contas.find(item => item.id === id);
+
+        if (!conta) {
+            return;
+        }
+
+        document.getElementById('descricao').value = conta.descricao || '';
+        document.getElementById('fornecedor').value = conta.fornecedor || '';
+        document.getElementById('documento').value = conta.documento || '';
+        document.getElementById('categoria').value = conta.categoria || '';
+        document.getElementById('valor').value = conta.valor || '';
+        document.getElementById('emissao').value = conta.emissao || '';
+        document.getElementById('vencimento').value = conta.vencimento || '';
+        document.getElementById('pagamento').value = conta.pagamento || '';
+        document.getElementById('status').value = conta.status || 'Pendente';
+        document.getElementById('observacoes').value = conta.observacoes || '';
+
+        contaEditando = id;
+
+        formConta.querySelector('button[type="submit"]')
+            .textContent = 'Salvar Alterações';
+
+        formConta.scrollIntoView({
+            behavior: 'smooth'
+        });
+    }
+
+
+    // EXCLUIR CONTA
+    async function excluirConta(id) {
+
+        const confirmar = confirm(
+            'Tem certeza que deseja excluir esta conta?'
+        );
+
+        if (!confirmar) {
+            return;
+        }
+
+        try {
+
+            const resposta = await fetch(`${API}/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!resposta.ok) {
+                throw new Error('Erro ao excluir conta.');
+            }
+
+            alert('Conta excluída com sucesso!');
+
+            carregarContas();
+
+        } catch (erro) {
+
+            console.error(erro);
+            alert('Não foi possível excluir a conta.');
+
+        }
+    }
+
+
+    // PESQUISA E FILTRO
+    document.getElementById('pesquisa')
+        .addEventListener('input', mostrarContas);
+
+    document.getElementById('filtroStatus')
+        .addEventListener('change', mostrarContas);
+
+
+    // LIMPAR FORMULÁRIO
+    formConta.addEventListener('reset', function() {
+
+        contaEditando = null;
+
+        setTimeout(() => {
+            formConta.querySelector('button[type="submit"]')
+                .textContent = 'Cadastrar Conta';
+        }, 0);
+
+    });
+
+
+    // INICIA A PÁGINA
+    carregarContas();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Consulta de Centros</title>
+
+    <link rel="stylesheet" th:href="@{/Css/estilo.css}">
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #17365d;
+            color: white;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="cabecalho">
+    <h1>Sistema de Centros</h1>
+    <p>Consulta de centros cadastrados</p>
+</header>
+
+<main class="container">
+
+    <section class="cartao">
+
+        <h2>Consultar Centros</h2>
+
+        <label>Pesquisar centro:</label>
+        <input type="text" placeholder="Digite o nome do centro">
+
+        <table>
+            <tr>
+                <th>Centro</th>
+                <th>Telefone</th>
+                <th>Responsável</th>
+            </tr>
+
+            <tr>
+                <td>Centro Exemplo</td>
+                <td>(11) 99999-9999</td>
+                <td>João</td>
+            </tr>
+        </table>
+
+        <br>
+
+        <div class="botoes-consulta">
+
+            <a href="/Cadastro-Centro" class="botao-voltar">Voltar para Cadastro</a>
+
+            <a href="/" class="botao-voltar-form">Voltar ao Menu Principal</a>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="rodape">
+    Sistema de Cadastro e Consulta de Centros
+</footer>
+
+</body>
+</html>

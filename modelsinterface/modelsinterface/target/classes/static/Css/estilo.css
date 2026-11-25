@@ -1,0 +1,116 @@
+
+/* Configuracoes gerais */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+/* Cabecalho */
+.cabecalho {
+    background-color: #17365d;
+    color: white;
+    padding: 22px 40px;
+}
+
+.cabecalho h1 {
+    margin: 0;
+    font-size: 25px;
+}
+
+.cabecalho p {
+    margin-bottom: 0;
+    color: #dbeafe;
+}
+
+/* Conteudo principal */
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 40px auto;
+}
+
+/* Cartao do menu */
+.cartao {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px #0000000d;
+     display: flow-root;
+}
+
+.cartao h2 {
+    margin-top: 0;
+    color: #17365d;
+}
+
+/* Links do menu */
+.menu-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-top: 25px;
+}
+
+.menu-links a {
+    display: block;
+    padding: 20px;
+    background-color: #eff6ff;
+    color: #17365d;
+    text-decoration: none;
+    border: 1px solid #dbeafe;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.menu-links a:hover {
+    background-color: #dbeafe;
+    transform: translateY(-2px);
+}
+
+/* Rodape */
+.rodape {
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+    padding: 20px;
+}
+
+.botao-voltar {
+    display: inline-block;
+    background-color: white;
+    color: #17365d;
+    border: 1px solid #17365d;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 10px;
+    float: left;
+}
+
+.botao-voltar:hover {
+    background-color: #17365d;
+    color: white;
+}
+
+.botao-voltar-form {
+    display: inline-block;
+    background-color: white;
+    color: #17365d;
+    border: 1px solid #17365d;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 10px;
+    float: right;
+}
+
+.botao-voltar-form:hover {
+    background-color: #17365d;
+    color: white;
